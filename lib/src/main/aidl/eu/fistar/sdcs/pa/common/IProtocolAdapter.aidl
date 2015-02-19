@@ -75,15 +75,17 @@ interface IProtocolAdapter {
     
     /**
      * Start the Device Adapter operations. This will cause the PA to bind the DA's service and start the DA.
+     * Since the binding of the DAs is an asynchronous process, once it's completed, the {@link IProtocolAdapterListener}'s
+     * onDAConnected will be called to notify the event to the application.
      *
-     * @param The Device Adapter ID
+     * @param daId The Device Adapter ID
      */
     void startDA(String daId);
     
     /**
      * Stop the Device Adapter operations. This will cause the PA to stop the DA and unbind the related service.
      *
-     * @param The Device Adapter ID
+     * @param daId The Device Adapter ID
      */
     void stopDA(String daId);
     

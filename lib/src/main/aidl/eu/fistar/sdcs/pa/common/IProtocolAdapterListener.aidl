@@ -37,10 +37,13 @@ interface IProtocolAdapterListener {
     /**
      * Called by Protocol Adapter to register a new device.
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device to register
+     *
+     * @param daId
+     *      The ID of the Device Adapter that is handling the device
      */
-    void registerDevice(in DeviceDescription devDesc);
+    void registerDevice(in DeviceDescription devDesc, in String daId);
 
     /**
      * Called by Protocol Adapter to push new measurements data coming from the device.
@@ -48,7 +51,7 @@ interface IProtocolAdapterListener {
      * @param observations
      *      The data to push
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device who supplies the data
      */
     void pushData(in List<Observation> observations, in DeviceDescription devDesc);
@@ -56,7 +59,7 @@ interface IProtocolAdapterListener {
     /**
      * Called by Protocol Adapter to deregister a device with the protocol adapter when it is not available anymore.
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device to deregister
      */
     void deregisterDevice(in DeviceDescription devDesc);
@@ -65,7 +68,7 @@ interface IProtocolAdapterListener {
      * Called by Protocol Adapter to register a new property for a device. This is not used at the
      * moment, since all the job is done with registerDevice.
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device that has the property to register
      */
     void registerDeviceProperties(in DeviceDescription devDesc);
@@ -73,7 +76,7 @@ interface IProtocolAdapterListener {
     /**
      * Called by Protocol Adapter when a device disconnects.
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device that has just disconnected
      */
     void deviceDisconnected(in DeviceDescription devDesc);
@@ -87,5 +90,14 @@ interface IProtocolAdapterListener {
      * @param message The content of the message
      */
     void log(in int logLevel, in String daId, in String message);
+
+    /**
+     * Called by Protocol Adapter when a Device Adapter completes the binding process with the PA.
+     * When this method is called, the DA whose ID is passed as argument is up and running, ready
+     * for interaction.
+     *
+     * @param daId The ID of the Device Adapter that just completed the binding with the PA
+     */
+    void onDAConnected(in String daId);
 
 } 

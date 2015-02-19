@@ -22,6 +22,7 @@
 
 package eu.fistar.sdcs.pa.common;
 
+import android.content.ComponentName;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -36,7 +37,8 @@ public class Capabilities implements Parcelable {
 
     private boolean mBlacklistSupport;
     private boolean mWhitelistSupport;
-    private boolean mGuiConfigurationSupport;
+    private String mGuiConfigurationActivity;
+    private String mGuiConfigurationActivityPackage;
     private int mDeviceConfigurationType;
     private boolean mCommandSupport;
     private boolean mDetectDeviceSupport;
@@ -93,7 +95,8 @@ public class Capabilities implements Parcelable {
     public void readFromParcel(Parcel in) {
         mBlacklistSupport = in.readByte() == 1;
         mWhitelistSupport = in.readByte() == 1;
-        mGuiConfigurationSupport = in.readByte() == 1;
+        mGuiConfigurationActivity = in.readString();
+        mGuiConfigurationActivityPackage = in.readString();
         mDeviceConfigurationType = in.readInt();
         mCommandSupport = in.readByte() == 1;
         mDetectDeviceSupport = in.readByte() == 1;
@@ -118,7 +121,8 @@ public class Capabilities implements Parcelable {
     public void writeToParcel(Parcel out, int flags) {
         out.writeByte((byte) (mBlacklistSupport ? 1 : 0));
         out.writeByte((byte) (mWhitelistSupport ? 1 : 0));
-        out.writeByte((byte) (mGuiConfigurationSupport ? 1 : 0));
+        out.writeString(mGuiConfigurationActivity);
+        out.writeString(mGuiConfigurationActivityPackage);
         out.writeInt(mDeviceConfigurationType);
         out.writeByte((byte) (mCommandSupport ? 1 : 0));
         out.writeByte((byte) (mDetectDeviceSupport ? 1 : 0));
@@ -159,7 +163,8 @@ public class Capabilities implements Parcelable {
      *
      * @param blacklistSupport True if the Device Adapter supports blacklists
      * @param whitelistSupport True if the Device Adapter supports whitelists
-     * @param guiConfigurationSupport True if the Device Adapter can be configured through a GUI
+     * @param guiConfigurationActivity The Activity used to configure the Device Adapter, or null if not supported
+     * @param guiConfigurationActivityPackage The package of the Activity used to configure the Device Adapter, or null if not supported
      * @param deviceConfigurationType Specify the kind of device configuration supported by Device Adapter
      * @param commandSupport True if Device Adapter supports commands
      * @param detectDeviceSupport True if the Device Adapter supports detection of the devices
@@ -174,7 +179,8 @@ public class Capabilities implements Parcelable {
     public Capabilities(
             boolean blacklistSupport,
             boolean whitelistSupport,
-            boolean guiConfigurationSupport,
+            String guiConfigurationActivity,
+            String guiConfigurationActivityPackage,
             int deviceConfigurationType,
             boolean commandSupport,
             boolean detectDeviceSupport,
@@ -188,7 +194,8 @@ public class Capabilities implements Parcelable {
 
         mBlacklistSupport = blacklistSupport;
         mWhitelistSupport = whitelistSupport;
-        mGuiConfigurationSupport = guiConfigurationSupport;
+        mGuiConfigurationActivity = guiConfigurationActivity;
+        mGuiConfigurationActivityPackage = guiConfigurationActivityPackage;
         mDeviceConfigurationType = deviceConfigurationType;
         mCommandSupport = commandSupport;
         mDetectDeviceSupport = detectDeviceSupport;
@@ -225,13 +232,26 @@ public class Capabilities implements Parcelable {
     }
 
     /**
-     * States whether Device Adapter supports configuration through a GUI. If true, the Device Adapter
-     * should provide working implementation of the following method: getDAConfigActivityName.
+     * States whether Device Adapter supports configuration through a GUI. If true, the activity
+     * name can be retrieved using the {@link #getConfigActivityName()} method.
      *
      * @return True if the Device Adapter supports configuration through a GUI, false otherwise
      */
     public boolean isGuiConfigurable() {
-        return mGuiConfigurationSupport;
+        return mGuiConfigurationActivity != null &&
+                !"".equals(mGuiConfigurationActivity) &&
+                mGuiConfigurationActivityPackage != null &&
+                !"".equals(mGuiConfigurationActivityPackage);
+    }
+
+    /**
+     * Retrieve the reference to the activity that can be used to configure the Device Adapter. Such
+     * reference is provided as a ComponentName object, so it can be used directly by the recipient.
+     *
+     * @return The reference to the configuration activity
+     */
+    public ComponentName getConfigActivityName() {
+        return new ComponentName(mGuiConfigurationActivityPackage, mGuiConfigurationActivityPackage + "." + mGuiConfigurationActivity);
     }
 
     /**
@@ -327,6 +347,15 @@ public class Capabilities implements Parcelable {
      * @return The Package Name of the Device Adapter
      */
     public String getPackageName() {
+        return mPackageName;
+    }
+
+    /**
+     * Retrieve the ID of the Device Adapter.
+     *
+     * @return The Device Adapter ID
+     */
+    public String getDaId() {
         return mPackageName;
     }
 

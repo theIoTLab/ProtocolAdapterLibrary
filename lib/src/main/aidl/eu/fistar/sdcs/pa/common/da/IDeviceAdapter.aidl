@@ -95,15 +95,6 @@ interface IDeviceAdapter {
     Capabilities getDACapabilities();
 
     /**
-     * Return the name of the Activity (or the Intent Filter name) that should be launched to
-     * perform the graphical configuration.
-     *
-     * @return The name of the activity that will be called by Protocol Adapter when it's
-     * necessary
-     */
-    String getDAConfigActivityName();
-
-    /**
      * Start the Device Adapter operations. The implementation for this method is mandatory.
      */
     void start();

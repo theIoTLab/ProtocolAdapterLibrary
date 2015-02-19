@@ -37,10 +37,13 @@ interface IDeviceAdapterListener {
     /**
      * Register a new device with the protocol adapter
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device to register
+     *
+     * @param daId
+     *      The ID of the Device Adapter that is handling the device
      */
-    void registerDevice(in DeviceDescription devDesc);
+    void registerDevice(in DeviceDescription devDesc, in String daId);
 
     /**
      * Push new measurements data coming from the device
@@ -48,7 +51,7 @@ interface IDeviceAdapterListener {
      * @param observations
      *      The data to push
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device who supplies the data
      */
     void pushData(in List<Observation> observations, in DeviceDescription devDesc);
@@ -57,7 +60,7 @@ interface IDeviceAdapterListener {
     /**
      * Deregister a device with the protocol adapter when it is not available anymore
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device to deregister
      */
     void deregisterDevice(in DeviceDescription devDesc);
@@ -66,7 +69,7 @@ interface IDeviceAdapterListener {
      * Register a new property for a device
      * Not used at the moment, since all the job is done with register_Device
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device that has the property to register
      */
     void registerDeviceProperties(in DeviceDescription devDesc);
@@ -74,7 +77,7 @@ interface IDeviceAdapterListener {
     /**
      * Called by Device Adapters when a device disconnects
      *
-     * @param dev_desc
+     * @param devDesc
      *      The device that has just disconnected
      */
     void deviceDisconnected(in DeviceDescription devDesc);
