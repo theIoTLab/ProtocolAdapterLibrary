@@ -1,36 +1,16 @@
 #Protocol Adapter Library
 
 FI-STAR Phase: Beta  
-Document version: 0.9 (draft)  
-Date: 15/12/2014
+Document version: 1.0 (draft)
+Date: 05/03/2015
 
-##What is the Protocol Adapter
-The Protocol Adapter is an M2M data collection software that runs on Android (mainly mobile) devices acting as a gateway for sensor devices. The Protocol Adapter was developed as an open source component of the FI-STAR Frontend Platform, in the frame of the FI-STAR project.
-The Protocol Adapter software architecture has three high-level components:
-
-* the Protocol Adapter Manager,
-* the Device Adapter and 
-* the Protocol Adapter Library
-
-###The Protocol Adapter Manager Service
-It includes a Protocol Adapter Manager (PAManagerService) service and several Device Adapters (DA) on the same Android device. All of them are implemented in separate Android applications and communicate using the AIDL interfaces and common objects included this library. The Protocol Adapter automatically discovers DAs present on the system at startup time and adds them to the pool of available DAs. This makes the architecture modular and expandable.
-The PAManagerService has three main roles:
-
-* to provide a single entry point for data-collection applications
-* to provide device management interfaces for the application
-* to manage the lifecycle of the DAs. 
-
-###The Device Adapter
-A Device Adapter is a software component that manages low-level connections to sensor devices of a given kind and collects data from them. The collected data resulting from the measurements carried out by the sensor devices are provided to the Protocol Adapter with a well-known data structure (i.e. Java object) called Observation. 
-Generally, DAs provide communication and interoperability at channel and syntactic level. Some operational aspects are also managed by the DA with sensor devices.
-
-###The Protocol Adapter Library
-The Protocol Adapter library contains all the objects and facilities (parcelable objects, AIDL interfaces, etc.) needed to develop applications that make use of the Protocol Adapter. Once included in your project, you won’t need to worry about low level details, but instead you can focus on implementing your logic, taking for granted the underlying infrastructure and functionalities provided by the Protocol Adapter. Please note that the library is needed for the development of applications, but it is also a dependency of the Protocol Adapter and in every Device Adapter. We have also released this library in the form of an AAR package.
+##What is the Protocol Adapter Library
+The Protocol Adapter Library is a component of the Protocol Adapter (more about the Protocol Adapter [here](https://github.com/theIoTLab/ProtocolAdapterManager/blob/master/Protocol%20Adapter%20Guide.md)). This library contains all the objects and facilities (parcelable objects, AIDL interfaces, etc.) needed to develop applications that make use of the Protocol Adapter. Once included in your project, you won’t need to worry about low level details, but instead you can focus on implementing your logic, taking for granted the underlying infrastructure and functionalities provided by the Protocol Adapter. Please note that the library is not only for using in applications, but it is also used by us in the Protocol Adapter Manager and in every Device Adapter. We released this library in the form of an AAR package.
 
 ##Working with the Protocol Adapter Library
 ###How to include the library in a project
-The first thing to do in order to work with the Protocol Adapter is to include the Protocol Adapter Library inside your project. Since Android Studio is now (Dic. 2014) in the latest stages of beta and it would soon released as stable, and since we used Android Studio as our IDE when developing the entire project, we will cover here the AAR package inclusion on Android Studio. For other IDEs, you should be able to find abundant resources on-line.
-Unluckily, to date (Dic. 2014) Android Studio does not offer a straightforward method to include an AAR package, but nevertheless the process is quite simple.
+The first thing to do in order to work with the Protocol Adapter is to include the Protocol Adapter Library inside your project. Since Android Studio is now the official Android IDE and since we used it as our IDE when developing the entire project, we will cover here the AAR package inclusion on Android Studio. For other IDEs, you should be able to find abundant resources on-line.
+Unluckily, to date (Mar. 2015) Android Studio does not offer a straightforward method to include an AAR package, but nevertheless the process is quite simple.
 
 First of all you should copy the AAR file inside the `libs` directory of your app module. You can do this by simply copy-pasting the file from your file manager directly in the IDE.
 
@@ -42,15 +22,15 @@ Then you should edit the build.gradle file of your app module and add these line
     }
     dependencies {
       // This is the entry that adds the dependency from the AAR library
-      compile 'eu.fistar.sdcs.pa.common:protocol-adapter-lib:3.3.0@aar'
+      compile 'eu.fistar.sdcs.pa.common:protocol-adapter-lib:3.4.4@aar'
      }
 
-The string passed as an argument of `compile` is made of 4 parts: the package name, the file name, the library version and the @aar suffix. To date (Dic. 2014) 3.3.0 is the latest version of the library, but you should take care of inserting the right version of the library here, the one that matches with the file you just copied in the project.
+The string passed as an argument of `compile` is made of 4 parts: the package name, the file name, the library version and the @aar suffix. To date (Mar. 2015) 3.4.4 is the latest version of the library, but you should take care of inserting the right version of the library here, the one that matches with the file you just copied in the project.
 Finally, you should force a sync of the project with gradle files. You can do this by clicking the specific button.
 If you want to use a directory other than `libs` just use the same name in the `build.gradle` file.
 
 ###Using the library in an application
-Once you have included the library in your project, you can start using the Protocol Adapter.
+Once the previous step is completed, you can start using the Protocol Adapter.
 
 The first thing you should keep in mind is that the Protocol Adapter is a bound service using the IProtocolAdapter AIDL interface and a pool of Parcelable objects that can flow through it, so you should bind it before you can use it. Moreover, it expects you to provide an implementation of the IProtocolAdapterListener and pass it over to Protocol Adapter after successful binding in order to establish a bidirectional communication channel.
 
@@ -63,7 +43,7 @@ Example code follows:
 
      private final IProtocolAdapterListener.Stub paListener = new IProtocolAdapterListener.Stub() {
         @Override
-        public void registerDevice(DeviceDescription deviceDescription) throws RemoteException {
+        public void registerDevice(DeviceDescription deviceDescription, String daId) throws RemoteException {
             /*************************
             * Your logic goes here
             **************************/
@@ -109,9 +89,17 @@ Example code follows:
             **************************/
             Log.d(LOGTAG, "LOG! Level: " + logLevel + "; DA: " + daId + "; Message: " + message + ";");
         }
+
+        @Override
+        public void onDaConnected(String daId) {
+            /*************************
+            * Your logic goes here
+            **************************/
+            Log.d(LOGTAG, "Device Adapter " + daId + " completed the initialization phase");
+        }
     };
 
-As you can see, this is a dummy implementation, but includes all the required methods.
+As you can see, this is a dummy implementation, but it includes all the required methods.
 For a brief description of all involved methods see the next section.
 
 ####Binding to the Protocol Adapter
@@ -153,9 +141,12 @@ Now that the ServiceConnection is implemented, you can bind the Protocol Adapter
 Once the binding is done, Android will call the “onServiceConnected” method of your implementation of ServiceConnection.
 
 ##An inside look at the Protocol Adapter Library
+
+In the following paragraphs you will find a brief analysis of some components of the library. For a complete technical reference, please refer to the library's JavaDoc that you can find [here](https://github.com/theIoTLab/ProtocolAdapterLibrary/releases/download/v3.4.4/protocol-adapter-lib-3.4.4-javadoc.zip).
+
 ###The IProtocolAdapter AIDL interface
-This is the AIDL interface implemented by the Protocol Adapter and includes all the methods used by Applications to communicate with the PA.
-These methods are:
+This is the AIDL interface implemented by the Protocol Adapter Manager and includes all the methods used by Applications to communicate with the PA.
+These are the most significant methods:
 
 * `List<DeviceDescription> getConnectedDevices()` - Returns a list of all the devices connected at the moment with the Device Adapter.
 * `Map<String, List<String>> getDADevices()` - Returns a map containing the Device ID of all the devices paired with the smartphone that can be handled by at least one DA as the key, and a list of DA IDs of DA that can handle that device as the value.
@@ -182,15 +173,18 @@ These methods are:
 Remember that methods of the IProtocolAdapter interface are not guaranteed to return immediately when they are called and may block. So, if you are calling them from inside an Activity and you are concerned about “Application Not Responding” errors (you should really be), you better call them from a thread other than the UI one.
 
 ###The IProtocolAdapterListener AIDL Interface
-This is the AIDL interface implemented by an Application and includes all the methods used by Protocol Adapter to communicate with Applications.
-These methods are:
+This is the AIDL interface implemented by an Application and includes all the methods used by the Protocol Adapter Manager to communicate with Applications.
+These are the most significant methods:
 
-* `void registerDevice(DeviceDescription devDesc)` - Called by Protocol Adapter to register a new device.
+* `void registerDevice(DeviceDescription devDesc, String daId)` - Called by Protocol Adapter to register a new device.
 * `void pushData(List<Observation> observations, DeviceDescription devDesc)` - Called by Protocol Adapter to push new measurements data coming from the device.
 * `void deregisterDevice(DeviceDescription devDesc)` - Called by Protocol Adapter to deregister a device with the protocol adapter when it is not available anymore.
 * `void registerDeviceProperties(DeviceDescription devDesc)` - Called by Protocol Adapter to register a new property for a device. This is not used at the moment, since all the job is done with registerDevice.
 * `void deviceDisconnected(DeviceDescription devDesc)` - Called by Protocol Adapter when a device disconnects.
+* `onDaConnected(String daId)` - Called by Protocol Adapter when a Device Adapter completes the binding process with the PA.
 * `void log(int logLevel, String daId, String message)` - Called by Protocol Adapter to forward to the Application a log message received from one of the Device Adapters or generated locally.
+
+Remember that methods of the IProtocolAdapterListener interface are not guaranteed to return immediately when they are called and may block. So, if you are calling them from inside an Activity and you are concerned about “Application Not Responding” errors (you should really be), you better call them from a thread other than the UI one.
 
 ###The Parcelable Objects
 The library includes a set of objects used to communicate data and represent devices, capabilities and events. Because these objects must flow through AIDL interfaces, they all implements the Parcelable interface, as required by Android. Parcel is the Android proprietary lightweight serialization standard and objects implementing the Parcelable interface are required to also implements a number of methods used to perform the serialization of an object into a Parcel and the deseralization of a Parcel into an object. Follows a brief description of all these objects.
@@ -230,7 +224,7 @@ Here are the public methods used to access the Capabilities of the Device Adapte
 
 * `public boolean hasBlacklist()` - States whether Device Adapter supports blacklist or not. If true, the Device Adapter should provide working implementation of the following methods: `addDeviceToBlackList()`, `removeDeviceFromBlacklist()`, `getBlacklist()`, `setBlacklist()`.
 * `public boolean hasWhitelist()` - States whether Device Adapter supports whitelist or not. If true, the Device Adapter should provide working implementation of the following methods: `addDeviceToWhiteList()`, `removeDeviceFromWhitelist()`, `getWhitelist()`, `setWhitelist()`.
-* `public boolean isGuiConfigurable()` - States whether Device Adapter supports configuration through a GUI. If true, the Device Adapter should provide working implementation of the following method: `getDAConfigActivityName()`.
+* `public boolean isGuiConfigurable()` - States whether Device Adapter supports configuration through a GUI. If true, the activity name can be retrieved using the `getConfigActivityName()` method.
 * `public int getDeviceConfigurationType()` - Retrieve the information about whether the configuration is supported by the Device Adapter and, if so, what kind of configuration it supports. If supported, the Device Adapter should provide working implementation of the following method: `setDeviceConfig()`.
 Acceptables values are between 0 and 3:
     * `0 = CONFIG_NOT_SUPPORTED` configuration is not supported
@@ -245,10 +239,12 @@ Acceptables values are between 0 and 3:
 * `public String getFriendlyName()` - Retrieve the Friendly Name of the Device Adapter, one that is both human readable and self-explanatory.
 * `public String getActionName()` - Retrieve the Action Name to use in order to bind the Device Adapter Service. Please note that since Android 5.0 (Lollipop) implicit intents are not supported anymore to bind services, so the action name must be an explicit one.
 * `public String getPackageName()` - Retrieve the Package Name of the Device Adapter.
+* `public String getDaId()` - Retrieve the ID of the Device Adapter.
+* `public ComponentName getConfigActivityName()` - Retrieve the reference to the activity that can be used to configure the Device Adapter. Such reference is provided as a ComponentName object, so it can be used directly by the recipient.
 * `public boolean canProvideAvailableDevice()` - States whether the Device Adapter has the ability to recognise if it can handle a device or not, and consequently if it can provide the list of the Available Devices or not. If supported, the Device Adapter should provide working implementation of the following methods: `getPairedDevicesAddress()`.
 
 ## Authors, Contact and Contributions
-As the licence reads, this is free software released by Consorzio Roma Ricerche. The authors (Marcello Morena and Alexandru Serbanati) will add over time support for even more devices, but external contributions are welcome. Please have a look at the TODO file about to what we are working on and feel free to contact us directly or at protocoladapter[at]gmail[dot]com if you plan on contributing.
+As the licence reads, this is free software released by Consorzio Roma Ricerche. The authors (Marcello Morena and Alexandru Serbanati) will continuously add support for even more medical devices, but external contributions are welcome. Please have a look at the TODO file to know what we are working on and contact us (protocoladapter[at]gmail[dot]com) if you plan on contributing.
 
 ## Acknowledgement
 This work was carried out with the support of the FI-STAR project (“Future Internet Social and Technological Alignment Research”), an integrated project funded by the European Commission through the 7th ICT - Framework Programme (318389).
