@@ -149,15 +149,15 @@ This is the AIDL interface implemented by the Protocol Adapter Manager and inclu
 These are the most significant methods:
 
 * `List<DeviceDescription> getConnectedDevices()` - Returns a list of all the devices connected at the moment with the Device Adapter.
-* `Map<String, List<String>> getDADevices()` - Returns a map containing the Device ID of all the devices paired with the smartphone that can be handled by at least one DA as the key, and a list of DA IDs of DA that can handle that device as the value.
+* `Map<String, List<String>> getDADevices()` - Returns a map containing the Device ID of all the devices managed by the currently available Device Adapters. These Device ID sets are provided in lists and sorted according to the DA (the Map key) that can handle them. For the Bluetooth-based Device Adapters for example, the keys are the names of the DAs and the Lists provided as value contain the MAC addresses of the devices the smartphone is paired with AND, at the same time, that can be handled by a DA, i.e. the specific DA provided as key.
 * `void setDeviceConfig(Map config, String devId)` - Set the specific configuration of a device managed by the Device Adapter passing a data structure with key-value pairs containing all possible configuration parameters and  their values, together with the device ID. This should be done before starting the Device  Adapter, otherwise standard configuration will be used. Depending on capabilities, this  could also be invoked when the DA is already running.
 * `void startDA(String daId)` - Start the Device Adapter operations. This will cause the PA to bind the DA's service and start the DA.
 * `void stopDA(String daId)` - Stop the Device Adapter operations. This will cause the PA to stop the DA and unbind the related service.
 * `Map<String, Capabilities> getAvailableDAs()` - Return a Map with all the available DAs in the system. The keys of the Map are the DAs' ID and the values are the related Capabilities object.
 * `Capabilities getDACapabilities(String daId)` - Return the object describing the capabilities of the specified DA.
-* `void connectDev(String devId)` - Connect to the device whose MAC Address is passed as an argument.
+* `void connectDev(String devId)` - Connect to the device whose MAC address is passed as an argument.
 * `void forceConnectDev(String devId, String daId)` - Force connection to the device whose devID is passed as an argument using the specified Device Adapter.
-* `void disconnectDev(String devId)` - Disconnect from the device whose MAC Address is passed as an argument.
+* `void disconnectDev(String devId)` - Disconnect from the device whose MAC address is passed as an argument.
 * `void registerPAListener(IBinder application)` - Called by the Application to register the binder representing its interface inside the Protocol Adapter.
 * `void addDeviceToWhitelist(String devId)` - Add a device to the Device Adapter whitelist, passing its device ID as an argument. Please note that this insertion will persist, even through Device Adapter reboots, until the device it's removed from the list. Every device adapter takes care of checking the format of the address passed as an argument and, if it does not support that kind of address, it will safely ignore that address.
 * `void removeDeviceFromWhitelist(String devId)` - Remove from the whitelist the device whose device ID is passed as an argument. If the device is not in the list, the request will be ignored.
